@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.22.0 (955b78124)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: transmission
+  name: transmission
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: transmission
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.22.0 (955b78124)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: transmission
+    spec:
+      containers:
+        - env:
+            - name: CREATE_TUN_DEVICE
+              value: "true"
+            - name: LOCAL_NETWORK
+              value: 10.0.0.0/8,192.168.1.0/24,172.16.0.0/16,172.17.0.0/16
+            - name: NORDVPN_CATEGORY
+              value: P2P
+            - name: OPENVPN_PROVIDER
+              value: NORDVPN
+            - name: PGID
+              value: "1109001126"
+            - name: PUID
+              value: "1109001106"
+            - name: TRANSMISSION_MAX_PEERS_GLOBAL
+              value: "2000"
+            - name: TRANSMISSION_PEER_LIMIT_GLOBAL
+              value: "2000"
+            - name: TRANSMISSION_PEER_LIMIT_PER_TORRENT
+              value: "200"
+            - name: TRANSMISSION_RATIO_LIMIT
+              value: "3"
+            - name: TRANSMISSION_RATIO_LIMIT_ENABLED
+              value: "True"
+            - name: TRANSMISSION_UMASK
+              value: "000"
+            - name: TRANSMISSION_UTP_ENABLED
+              value: "false"
+            - name: TRANSMISSION_WATCH_DIR
+              value: /data/watch
+            - name: TRANSMISSION_WATCH_DIR_ENABLED
+              value: "true"
+            - name: TRANSMISSION_WEB_UI
+              value: combustion
+            - name: WEBPROXY_ENABLED
+              value: "false"
+          image: haugene/transmission-openvpn:latest
+          name: transmission
+          ports:
+            - containerPort: 9091
+          resources: {}
+          securityContext:
+            capabilities:
+              add:
+                - NET_ADMIN
+          volumeMounts:
+            - mountPath: /data
+              name: /mnt/naspool/nas/Docker
+            - mountPath: /config
+              name: transmission-config
+      restartPolicy: Always
+      volumes:
+        - name: transmission-config
+          persistentVolumeClaim:
+            claimName: transmission-config
+status: {}
